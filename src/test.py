@@ -7,6 +7,8 @@ import numpy as np
 import matplotlib as mp
 from matplotlib import pyplot
 
+# commento di prova
+
 def find_biggest_contour(image):
     # Copy
     image = image.copy()
