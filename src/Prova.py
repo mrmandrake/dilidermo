@@ -17,9 +17,10 @@ class Folder:
                 if names.endswith("2017"):
                     perc=os.path.join(mypath,str(pths),str(names))
                     os.chdir(str(perc))
-                    self.Apertura(perc)
+                    return(str(perc))
+                    break
                 break
-            break
+                
         
     
     def Apertura(self,perc):
@@ -31,13 +32,14 @@ class Folder:
                     cv2.imshow('immagine',immagine)
                     cv2.waitKey(0)  
                     cv2.destroyAllWindows()
+                return(immagine)
                     
                     
 
 class Preprocessing:
-    def Histograms(self,immagine):
-        channel=[0]
-        hist=cv2.calcHist([img], channels=[0], mask=None, histSize=[256], ranges=[0,256])
+    def Histograms(immagine):
+        channels=[0]
+        hist=cv2.calcHist([immagine], channels, mask=None, histSize=[256], ranges=[0,256])
         plt.plot(hist) 
         plt.show()
         return (hist)
@@ -47,8 +49,7 @@ mypath=os.getcwd()
 myfold=Folder(mypath)
 prepro=Preprocessing()
 lista_cartelle=os.listdir(mypath)
-for elementi in lista_cartelle:
-    myfold.Cartella(mypath, elementi)
-
-
+percorso=myfold.Cartella(mypath, lista_cartelle[4])
+immagine=myfold.Apertura(percorso)
+Preprocessing.Histograms(immagine)
 
