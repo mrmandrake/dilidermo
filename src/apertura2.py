@@ -7,7 +7,7 @@ import numpy.ma
 import matplotlib
 from matplotlib import pyplot as plt
 
-img_path = "/Users/manovella/Projects/dilidermo/img/V4_2017/01/03/00001927_00003817/00013004.bmp"#sys.argv[1]
+img_path = "C:\\Users\\matte\\OneDrive\\Documenti\\GitHub\\dilidermo\\img\\V4_2017\\01\03\\00001927_00003817\\00013004.bmp"#sys.argv[1]
 
 # Calcolo istrogramma
 def histogram(grey, mask=None):
