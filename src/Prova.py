@@ -1,6 +1,7 @@
 import os, cv2
 import numpy, numpy.ma
 import matplotlib
+import sys
 from matplotlib import pyplot as plt
 import random 
 
@@ -68,25 +69,34 @@ class Preprocessing:
         #-----Converting image from LAB Color model to RGB model--------------------
         finalContrast = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
         cv2.imshow('final', finalContrast)
-        Preprocessing.RimPix(finalContrast)
+        Preprocessing.RimPix(finalContrast,immagine)
 
-    def RimPix (finalContrast):
+    def RimPix (finalContrast,immagine):
         BW= cv2.cvtColor(finalContrast, cv2.COLOR_RGB2GRAY)
         ret,BIN=cv2.threshold(BW,35,255,cv2.THRESH_BINARY)
         cv2.imshow('BIN',BIN)
         edged=cv2.Canny(BIN, 20, 30, apertureSize=5)
         lines = cv2.HoughLines(edged,10,numpy.pi/180, 20,30,10)
-        for x in range(len(lines)):
-            for x1,y1,x2,y2 in lines[x]:
+        flg=1
+        for coord in lines:
+            for x,y in coord:
                 #cv2.line(inputImage,(x1,y1),(x2,y2),(0,128,0),2, cv2.LINE_AA)
-                pts = np.array([[x1, y1 ], [x2 , y2]], np.int32)
-                cv2.polylines(inputImage, [pts], True, (0,255,0))
+                if flg==1:
+                    pts = numpy.array([[x, y]], numpy.int32)
+                    flg=flg+1
+                else:
+                    pts2=numpy.array([[x,y]], numpy.int32)
+                    pts=numpy.concatenate((pts, pts2))
+                    cv2.polylines(immagine, [pts], True, (0,255,0))
+                    flg=1
 
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                cv2.putText(inputImage,"Tracks Detected", (500, 250), font, 0.5, 255)
-                cv2.imshow("Trolley_Problem_Result", finalContrast)
-                cv2.imshow('edge', edged)
-                cv2.waitKey(0)
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(immagine,"Tracks Detected", (500, 250), font, 0.5, 255)
+        cv2.imshow("Trolley_Problem_Result", immagine)
+        cv2.imshow('edge', immagine)
+        
+
+            
                 
         #Preprocessing.Gradienti(BIN)
     
