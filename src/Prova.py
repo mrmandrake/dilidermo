@@ -69,7 +69,48 @@ class Preprocessing:
         #-----Converting image from LAB Color model to RGB model--------------------
         finalContrast = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
         cv2.imshow('final', finalContrast)
-        Preprocessing.RimPix(finalContrast,immagine)
+        Preprocessing.Grads(finalContrast,immagine)
+        #Preprocessing.RimPix(finalContrast,immagine)
+    
+    def Grads(finalContrast, immagine):
+        kernel=(1,15)
+        grads=cv2.morphologyEx(finalContrast, cv2.MORPH_GRADIENT, kernel)
+        cv2.imshow('Grads',grads)
+        for Xcoord in range(0,grads.shape[0]):
+            for Ycoord in range(0,grads.shape[1]):
+                pixs=grads[Xcoord,Ycoord]
+
+                if pixs[0]>=50 & pixs[2]>=50:
+                    if pixs[1] >=25:
+                        immagine[Xcoord,Ycoord]=[255,255,0]
+                        print("Trovato pixel")
+                        print(immagine [Xcoord,Ycoord])
+        cv2.imshow("Primo Tentativo", grads)
+                                
+        
+        
+        
+        #for x in range(0,grads.shape[0]):
+         #   for y in range (0, grads.shape[1]):
+          #      for z in range (0, grads.shape[2]):
+           #         pixs.append(grads.item(x,y,z))
+        
+        #for pixel in grads:
+         #   for R,G,B in pixel:
+          #      if R>=10 & B>=10:
+           #         kernel=(1,10)
+            #        erosion=cv2.erode(grads,kernel, iterations=3)
+             #   else:
+              #      if R>=10 & G>10:
+               #         kernel=(1,10)
+                #        erosion=cv2.erode(grads,kernel, iterations=3)
+        #cv2.imshow('Erosione',erosion)
+
+        #R,G,B=cv2.split(closing)
+        
+        #erosion=cv2.erode(closing,kernel, iterations=3)
+        #cv2.imshow("Gradienti",closing)
+
 
     def RimPix (finalContrast,immagine):
         BW= cv2.cvtColor(finalContrast, cv2.COLOR_RGB2GRAY)
