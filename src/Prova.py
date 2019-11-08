@@ -74,6 +74,7 @@ class Preprocessing:
     
     def Grads(finalContrast, immagine):
         kernel=(1,15)
+        imm=immagine
         grads=cv2.morphologyEx(finalContrast, cv2.MORPH_GRADIENT, kernel)
         cv2.imshow('Grads',grads)
         for Xcoord in range(0,grads.shape[0]):
@@ -82,45 +83,46 @@ class Preprocessing:
 
                 if pixs[0]>=50 & pixs[2]>=50:
                     if pixs[1] >=25:
-                        immagine[Xcoord,Ycoord]=[255,255,0]
+                        imm[Xcoord,Ycoord]=[255,255,0]
                         print("Trovato pixel")
-                        print(immagine [Xcoord,Ycoord])
-        cv2.imshow("Primo Tentativo", grads)
+                        print(imm [Xcoord,Ycoord])
+        cv2.imshow("Primo Tentativo", imm)
+        kernel_size = 5
+        blur_gray = cv2.GaussianBlur(immagine,(kernel_size, kernel_size),0)
+
+        low_threshold = 50
+        high_threshold = 150
+        edges = cv2.Canny(blur_gray, low_threshold, high_threshold)
+
+        rho = 1  # distance resolution in pixels of the Hough grid
+        theta = numpy.pi / 180  # angular resolution in radians of the Hough grid
+        threshold = 15  # minimum number of votes (intersections in Hough grid cell)
+        min_line_length = 50  # minimum number of pixels making up a line
+        max_line_gap = 20  # maximum gap in pixels between connectable line segments
+        line_image = numpy.copy(immagine) * 0  # creating a blank to draw lines on
+
+        # Run Hough on edge detected image
+        # Output "lines" is an array containing endpoints of detected line segments
+        lines = cv2.HoughLinesP(edges, rho, theta, threshold, numpy.array([]),
+                    min_line_length, max_line_gap)
+        print(lines)
+        points = []
+        for line in lines:
+            for x1, y1, x2, y2 in line:
+                points.append(((x1 + 0.0, y1 + 0.0), (x2 + 0.0, y2 + 0.0)))
+                cv2.line(line_image, (x1, y1), (x2, y2), (255, 0, 0), 5)
+
+        lines_edges = cv2.addWeighted(immagine, 0.8, line_image, 1, 0)
+        cv2.imshow('Linee', lines_edges)
                                 
-        
-        
-        
-        #for x in range(0,grads.shape[0]):
-         #   for y in range (0, grads.shape[1]):
-          #      for z in range (0, grads.shape[2]):
-           #         pixs.append(grads.item(x,y,z))
-        
-        #for pixel in grads:
-         #   for R,G,B in pixel:
-          #      if R>=10 & B>=10:
-           #         kernel=(1,10)
-            #        erosion=cv2.erode(grads,kernel, iterations=3)
-             #   else:
-              #      if R>=10 & G>10:
-               #         kernel=(1,10)
-                #        erosion=cv2.erode(grads,kernel, iterations=3)
-        #cv2.imshow('Erosione',erosion)
 
-        #R,G,B=cv2.split(closing)
-        
-        #erosion=cv2.erode(closing,kernel, iterations=3)
-        #cv2.imshow("Gradienti",closing)
-
-
-    def RimPix (finalContrast,immagine):
-        BW= cv2.cvtColor(finalContrast, cv2.COLOR_RGB2GRAY)
+    def RimPix (imm):
+        BW= cv2.cvtColor(imm, cv2.COLOR_RGB2GRAY)
         ret,BIN=cv2.threshold(BW,35,255,cv2.THRESH_BINARY)
         cv2.imshow('BIN',BIN)
         edged=cv2.Canny(BIN, 20, 30, apertureSize=5)
-        lines = cv2.HoughLines(edged,10,numpy.pi/180, 20,30,10)
-        flg=1
-        for coord in lines:
-            for x,y in coord:
+        lines = cv2.HoughLines(edged,10,numpy.pi/180, 255,255,0)
+        for x1 in lines:
                 #cv2.line(inputImage,(x1,y1),(x2,y2),(0,128,0),2, cv2.LINE_AA)
                 if flg==1:
                     pts = numpy.array([[x, y]], numpy.int32)
