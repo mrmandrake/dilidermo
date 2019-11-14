@@ -49,26 +49,33 @@ class Preprocessing:
             cv2.MORPH_CLOSE, kernel)
         hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         cv2.imshow('hsv', hsv_image)
+        cv2.waitKey(0)
         return (hsv_image)
                 
     def Lines(img,Open):
         SnakeCoord=[]
-        colour=(10,10,10)
+        colour=(150,105,80)
         for x in range (Open.shape[0]):
             for y in range(Open.shape[1]):
                 r,g,b=Open[x,y]
-                if r >= colour[0] & g>=colour[1] & b>=colour[2]:
-                    SnakeCoord=SnakeCoord.append(x)
-                    SnakeCoord=SnakeCoord.append(y)
+                if r >= colour[0]:
+                    if g>=colour[1]:
+                        if b>=colour[2]:
+                            SnakeCoord=SnakeCoord+[x,y]
                     
         
-        SnakeCoord=np.array(SnakeCoord)
+        SnakeCoord=np.ndarray([Open.shape[0],2])
         contour=active_contour(Open, SnakeCoord, alpha=0.8, beta=0.7, w_line= -0.7, w_edge=0.5,
                                 gamma=0.02,
                                 bc=None,
-                                max_px_move=10,
-                                max_iterations=3000)
-   
+                                max_px_move=1.0,
+                                max_iterations=200)
+        for x in contour[0]:
+            for y in contour[1]:
+                contorni= np.array((x,y))
+        cv2.drawContours(img,contorni, (0,255,0),-1)        #Non riesco a disegnare i contorni dello snake
+        cv2.imshow('Snake', Snake)
+        cv2.waitKey(0)
 
 
 
