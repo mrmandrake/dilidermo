@@ -64,18 +64,21 @@ class Preprocessing:
                             SnakeCoord=SnakeCoord+[x,y]
                     
         
-        SnakeCoord=np.ndarray([Open.shape[0],2])
-        contour=active_contour(Open, SnakeCoord, alpha=0.8, beta=0.7, w_line= -0.7, w_edge=0.5,
+        coord = []
+        for item in SnakeCoord:
+            coord.append(item)
+        p1=[]
+        p2=[]
+        for x in range(0,len(coord),2):
+            p1=p1+coord(x)
+        for y in range(1, len(coord), 2):
+            p2=p2+coord[y]
+        
+            contour=active_contour(Open, coord, alpha=0.8, beta=0.7, w_line= -0.7, w_edge=0.5,
                                 gamma=0.02,
                                 bc=None,
                                 max_px_move=1.0,
                                 max_iterations=200)
-        for x in contour[0]:
-            for y in contour[1]:
-                contorni= np.array((x,y))
-        cv2.drawContours(img,contorni, (0,255,0),-1)        #Non riesco a disegnare i contorni dello snake
-        cv2.imshow('Snake', Snake)
-        cv2.waitKey(0)
 
 
 
