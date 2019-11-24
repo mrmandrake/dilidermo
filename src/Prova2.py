@@ -6,8 +6,7 @@ import glob
 import sys
 import itertools
 import matplotlib.pyplot as plt
-from skimage.transform import hough_ellipse
-from skimage.draw import ellipse_perimeter
+from scipy import ndimage
 from skimage.segmentation import active_contour
 
 class IMG_list:
@@ -55,88 +54,85 @@ class Preprocessing:
         return (hsv_image)
                 
     def Lines(img,Open):            #Funzione per cercare di disegnare i contorni del neo
-        SnakeCoord=[]
-        colour=(130,50,120)             #inizializzazione delle coordinate di uno snake random in
-        for x in range (Open.shape[0]): #modo tale che abbia senso la sua inizializzazione (basata quindi su una treshold di colore)
-            for y in range(Open.shape[1]):
-                r,g,b=Open[x,y]
-                if r >= colour[0]:
-                    if g>=colour[1]:
-                        if b>=colour[2]:
-                            SnakeCoord=SnakeCoord+[x,y] 
-                    
-        coord=[]
-        for x in range(0,len(SnakeCoord),2):    #risistemo le coordinate iniziali dello snake in modo che vengano prese in pasto da active_contour
-            coord=coord+[[SnakeCoord[x],SnakeCoord[x+1]]]
-        coord=np.array(coord)
         
-        contour=active_contour(Open, coord, alpha=0.8, beta=0.7, w_line= -0.7, w_edge=0.5,  #ottengo lo snake contour che non riesco a disegnare sopra
-                                gamma=0.02,
-                                bc=None,
-                                max_px_move=1.0,
-                                max_iterations=200)
-        Preprocessing.draw_closing_lines(img,coord)
-    
-
-    def draw_closing_lines(img,SnakeCoord):     #funzione per disegnare le linee dello snake trovate
-        p=0
-        x1=[]
-        x2=[]
-        y1=[]
-        y2=[]
-        for item in SnakeCoord:
-            if p==0:                            #risistemo le coordinate dello snake di modo tale che vengano ordinate a coppie 
-                x1.append(item[0])              #e che vengano prese da cv.line in quanto non riesco ad usare la funzione DrawContours
-                y1.append(item[1])              #Sono sicuro ci sia un modo più efficiente e funzionante ma non riesco a trovarlo o farlo funzionare
-                p= p + 1
-
-            elif p==1:
-                x2.append(item[0])
-                y2.append(item[1])
-                p=0
-        if len(x1)> len(x2):
-            x2.append(x1[-1])
-            y2.append(y1[-1])
-        elif len(x2)>len(x1):
-            x1.append(x2[-1])
-            y1.append(y2[-1])
-
-        for i in np.arange(len(x1)):
-            cv2.line(img, (x1[i],y1[i]),(x2[i],y2[i]),(0,255,0),3)
-
-        cv2.imshow('Img Contours',img)
+        #img=cv2.resize(img, (256,256), interpolation=cv2.INTER_CUBIC)
+        new_img=img.copy()
+        gray= cv2.cvtColor(new_img, cv2.COLOR_RGB2GRAY)
+        for i in range (0,5):
+            new_img = cv2.medianBlur(gray, 27)
+        cv2.imshow('Blurred', new_img)
         cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        ret2,thresh2 = cv2.threshold(new_img,127,255,cv2.THRESH_BINARY_INV)
+        ret, thresh = cv2.threshold(thresh2, 170, 180, 0)
+        contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL , cv2.CHAIN_APPROX_SIMPLE)
+        
+        cv2.drawContours(new_img, contours,-1,(0,255,253),thickness=3)
+        cv2.imshow('Snake', new_img)
+        cv2.waitKey(0)
+        # Isolate largest contour
+        contour_sizes = [(cv2.contourArea(contour), contour) for contour in contours]
+        biggest_contour = max(contour_sizes, key=lambda x: x[0])[1]
+        areas=[]
+        cnt_sizes=sorted(contour_sizes)
+        big = cnt_sizes[-1][0]
+        for x in range(len(cnt_sizes)):
+            if cnt_sizes[x][0]>=big-0.15*big and cnt_sizes[x][0] <= big+0.15*big:
+                areas.append(cnt_sizes[x][1])        
+        mask = np.zeros(img.shape, np.uint8)
+        cv2.drawContours(mask, [areas[0][:,:]], -1, 255, -1)
+        #cv2.drawContours(mask, [biggest_contour], -1, 255, -1)
 
-    def Lap(img, hsv):
-        grey= cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        sobelx64= cv2.Sobel(grey, cv2.CV_64F,1,0,ksize=5)
-        sobelx=np.uint8(np.absolute(sobelx64))
-        sobely64 =cv2.Sobel(grey,cv2.CV_64F, 0,1, ksize=5)
-        sobely=np.uint8(np.absolute(sobely64))
-        fusion= np.sqrt(sobelx**2+sobely**2)
-        cv2.imshow('img',img)
-        cv2.imshow('grey',sobelx)
-        cv2.imshow('Laplacian', sobely)
-        #cv2.imshow('Fusion',fusion)
+        #cv2.imshow('biggest_contour',np.uint32([contour_sizes]))
+        cv2.waitKey(0)
+        cv2.imshow('mask', mask)
+        cv2.waitKey(0)
+        #Preprocessing.Mask(contours, hierarchy, img)
 
-#                contour_binary = np.zeros(img.shape[:2],
- #                                       dtype=np.uint8)
-  #              cv2.drawContours(contour_binary, mask_contours,
-   #                                 max_area_pos,
-    #                                 255,
-     #                                2)
-      #          cv2.imshow('bitwise',contour_binary)
-       #         cv2.waitKey(0)
-        #        cv2.destroyAllWindows()
-         #       contour_area = cv2.contourArea(contour)
-          #      segmented_img = cv2.bitwise_and(
-           #             img, img,
-            #            mask=contour_mask)
-             #   segmented_img[segmented_img == 0] = 255
- #           else:
-  #              print("No contours found")
-   #     return
+    #def Mask(contours,hierarchy,img):
+        
+
+    def Center(img):
+        gray= cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        maxval=30
+        minvect=[]
+        itery=[]
+        iterx=[]
+        it=1
+        for x in range(gray.shape[0]):
+            for y in range(gray.shape[1]):
+                val=gray[x,y]
+                if val <= maxval:
+                    minvect= minvect+[[x,y]]
+                    while gray[x,y+it] <= maxval+10:
+                        it=it+1
+                        itery=itery+[it]
+                    it=1
+                    while gray[x+it,y]<=maxval+10:
+                        it=it+1
+                        iterx=iterx+[it]
+                    it=1
+                if x > gray.shape[0] or y> gray.shape[1]:
+                    x=gray.shape[1]
+                    y=gray.shape[0]
+        iterx=max(iterx)
+        itery=max(itery)
+        if iterx>itery:
+            radius=int(iterx)
+        else:
+            radius=int(itery)
+
+        center=(minvect)
+
+        return(center, radius)
+    def Cerchio(resolution, center, radius):
+        radians = np.linspace(0, 2*np.pi, resolution)
+        c = center[1] + radius*np.cos(radians)#polar co-ordinates
+        r = center[0] + radius*np.sin(radians)
+    
+        return np.array([c, r]).T
+
+  
+
 
 
 
@@ -151,7 +147,12 @@ iterations=3
 for names in mystring:
     img=cv2.imread(names)
     Open=Preprocessing.PrePro(img)
-    gray=cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     Preprocessing.Lines(img, Open)
-    Preprocessing.Lap(img,Open)
-
+    #centro=Preprocessing.Center(img)
+    #for u in range(len(centro[0])):
+    #    punti=Preprocessing.Cerchio(1000,centro[0][u],centro[1])[:-1]
+     #   snake = active_contour(img, punti)
+      #  cv2.polylines(img, np.int32([snake]), True, (0,255,255), 3)
+       # cv2.imshow('Snake', img)
+        #cv2.waitKey(0)
+        #cv2.destroyAllWindows()
