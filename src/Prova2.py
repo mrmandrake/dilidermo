@@ -1,5 +1,5 @@
 import numpy as np
-import pandas as pd
+#import pandas as pd
 import cv2
 import os
 import glob
@@ -7,7 +7,7 @@ import sys
 import itertools
 import matplotlib.pyplot as plt
 from scipy import ndimage
-from skimage.segmentation import active_contour
+#from skimage.segmentation import active_contour
 
 class IMG_list:
     def __init__(self, path):
