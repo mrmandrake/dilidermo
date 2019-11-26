@@ -1,56 +1,60 @@
-import os, cv2
-import numpy, numpy.ma
+import os
+import cv2
+import numpy
+import numpy.ma
 import matplotlib
 import sys
+import random
 from matplotlib import pyplot as plt
+<<<<<<< Updated upstream
 import random
 from skimage.transform import hough_ellipse
 from skimage.draw import ellipse_perimeter
+=======
+>>>>>>> Stashed changes
 
-#Definisco la classe di ricerca della cartella delle immagini
 class Folder:
     def __init__(self, mypath):
         self.mypath = mypath
 
-        
     def Cartella(self, mypath, elementi):
- # Elenco di cartelle presenti nella CDirectory
-        for pths,sbdir,subfil in os.walk(elementi):
+     # Elenco di cartelle presenti nella CDirectory
+        for pths, sbdir in os.walk(elementi):
             for names in sbdir:
                 if names.endswith("2017"):
-                    perc=os.path.join(mypath,str(pths),str(names))
+                    perc = os.path.join(mypath, str(pths), str(names))
                     os.chdir(str(perc))
                     return(perc)
-                    break
-                break
-                
-        
-    
-    def Apertura(self,perc):
-        for phts, sbdir, sbfil in os.walk(perc):
+
+    def Apertura(self, perc):
+        for phts, sbfil in os.walk(perc):
             for photos in sbfil:
                 if photos.endswith('bmp'):
+<<<<<<< Updated upstream
                     perc_img=os.path.join(phts,str(photos))
                     immagine=cv2.imread(perc_img)
                     cv2.imshow('immagine',immagine)
                     #cv2.waitKey(0)  
+=======
+                    perc_img = os.path.join(phts, str(photos))
+                    immagine = cv2.imread(perc_img)
+                    cv2.imshow('immagine', immagine)
+                    cv2.waitKey(0)
+>>>>>>> Stashed changes
                     #cv2.destroyAllWindows()
                     return(immagine)
-                    
-                    
 
 class Preprocessing:
-
     def Histograms(immagine):
-        channels=[0]
-        hist=cv2.calcHist([immagine], channels, mask=None, histSize=[256], ranges=[0,256])
-        plt.plot(hist) 
+        channels = [0]
+        hist = cv2.calcHist([immagine], channels, mask=None,
+                            histSize=[256], ranges=[0, 256])
+        plt.plot(hist)
         plt.show()
         return (hist)
-        
-    def Contrasto (immagine):
-        img=immagine
-        lab= cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+
+    def Contrasto(img):
+        lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
         #cv2.imshow("lab",lab)
 
         #-----Splitting the LAB image to different channels-------------------------
@@ -60,18 +64,29 @@ class Preprocessing:
         #cv2.imshow('b_channel', b)
 
         #-----Applying CLAHE to L-channel-------------------------------------------
-        clahe = cv2.createCLAHE(clipLimit=3, tileGridSize=(4,4))
+        clahe = cv2.createCLAHE(clipLimit=3, tileGridSize=(4, 4))
         cl = clahe.apply(l)
 
         #-----Merge the CLAHE enhanced L-channel with the a and b channel-----------
+<<<<<<< Updated upstream
         limg = cv2.merge((cl,a,b))
 
         #-----Converting image from LAB Color model to RGB model--------------------
         finalContrast = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
         Preprocessing.Grads(finalContrast,immagine)
+=======
+        limg = cv2.merge((cl, a, b))
+        cv2.imshow('limg', limg)
+
+        #-----Converting image from LAB Color model to RGB model--------------------
+        finalContrast = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
+        cv2.imshow('final', finalContrast)
+        Preprocessing.Grads(finalContrast, immagine)
+>>>>>>> Stashed changes
         #Preprocessing.RimPix(finalContrast,immagine)
-    
+
     def Grads(finalContrast, immagine):
+<<<<<<< Updated upstream
         kernel=(1,15)
         imm=immagine
         grads=cv2.morphologyEx(finalContrast, cv2.MORPH_GRADIENT, kernel)
@@ -95,6 +110,24 @@ class Preprocessing:
         #una loro sostituzione con un valore altamente identificabile (0,255,0).
         kernel_size = 5
         blur_gray = cv2.GaussianBlur(imm,(kernel_size, kernel_size),0)
+=======
+        kernel = (1, 15)
+        imm = immagine
+        grads = cv2.morphologyEx(finalContrast, cv2.MORPH_GRADIENT, kernel)
+        cv2.imshow('Grads', grads)
+        for Xcoord in range(0, grads.shape[0]):
+            for Ycoord in range(0, grads.shape[1]):
+                pixs = grads[Xcoord, Ycoord]
+
+                if pixs[0] >= 50 & pixs[2] >= 50:
+                    if pixs[1] >= 25:
+                        imm[Xcoord, Ycoord] = [255, 255, 0]
+                        print("Trovato pixel")
+                        print(imm[Xcoord, Ycoord])
+        cv2.imshow("Primo Tentativo", imm)
+        kernel_size = 5
+        blur_gray = cv2.GaussianBlur(immagine, (kernel_size, kernel_size), 0)
+>>>>>>> Stashed changes
 
         low_threshold = 25
         high_threshold = 90
@@ -102,15 +135,27 @@ class Preprocessing:
         cv2.imshow('canny', edges)
         rho = 1  # distance resolution in pixels of the Hough grid
         theta = numpy.pi / 180  # angular resolution in radians of the Hough grid
+<<<<<<< Updated upstream
         threshold = 15  # minimum number of votes (intersections in Hough grid cell)
         min_line_length = 30  # minimum number of pixels making up a line
+=======
+        # minimum number of votes (intersections in Hough grid cell)
+        threshold = 15
+        min_line_length = 50  # minimum number of pixels making up a line
+>>>>>>> Stashed changes
         max_line_gap = 20  # maximum gap in pixels between connectable line segments
-        line_image = numpy.copy(immagine) * 0  # creating a blank to draw lines on
-
+        
+        # creating a blank to draw lines on
+        line_image = numpy.copy(immagine) * 0
         # Run Hough on edge detected image
         # Output "lines" is an array containing endpoints of detected line segments
+<<<<<<< Updated upstream
         lines = cv2.HoughLinesP(edges, rho, theta, threshold, numpy.array([]),
                     min_line_length, max_line_gap)
+=======
+        lines = cv2.HoughLinesP(edges, rho, theta, threshold, numpy.array([]), min_line_length, max_line_gap)
+        print(lines)
+>>>>>>> Stashed changes
         points = []
 
         for line in lines:
@@ -120,6 +165,7 @@ class Preprocessing:
 
         lines_edges = cv2.addWeighted(immagine, 0.8, line_image, 1, 0)
         cv2.imshow('Linee', lines_edges)
+<<<<<<< Updated upstream
         Preprocessing.NeoContours(imm, lines_edges)
     
     def NeoContours(immagine, lines_edges):
@@ -152,14 +198,37 @@ class Preprocessing:
 
 
   
+=======
 
+    def RimPix(imm):
+        BW = cv2.cvtColor(imm, cv2.COLOR_RGB2GRAY)
+        ret, BIN = cv2.threshold(BW, 35, 255, cv2.THRESH_BINARY)
+        cv2.imshow('BIN', BIN)
+        edged = cv2.Canny(BIN, 20, 30, apertureSize=5)
+        lines = cv2.HoughLines(edged, 10, numpy.pi/180, 255, 255, 0)
+        for x1 in lines:
+                #cv2.line(inputImage,(x1,y1),(x2,y2),(0,128,0),2, cv2.LINE_AA)
+                if flg == 1:
+                    pts = numpy.array([[x, y]], numpy.int32)
+                    flg = flg+1
+                else:
+                    pts2 = numpy.array([[x, y]], numpy.int32)
+                    pts = numpy.concatenate((pts, pts2))
+                    cv2.polylines(immagine, [pts], True, (0, 255, 0))
+                    flg = 1
 
-mypath=os.getcwd()
-myfold=Folder(mypath)
-prepro=Preprocessing()
-lista_cartelle=os.listdir(mypath)
-percorso=myfold.Cartella(mypath, lista_cartelle[4])
-immagine=myfold.Apertura(percorso)
-finalContrast=Preprocessing.Contrasto(immagine)
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(immagine, "Tracks Detected", (500, 250), font, 0.5, 255)
+        cv2.imshow("Trolley_Problem_Result", immagine)
+        cv2.imshow('edge', immagine)
+
+>>>>>>> Stashed changes
+
+mypath = os.getcwd()
+myfold = Folder(mypath)
+prepro = Preprocessing()
+lista_cartelle = os.listdir(mypath)
+percorso = myfold.Cartella(mypath, lista_cartelle[4])
+immagine = myfold.Apertura(percorso)
+finalContrast = Preprocessing.Contrasto(immagine)
 Preprocessing.Histograms(finalContrast)
-
